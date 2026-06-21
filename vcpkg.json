@@ -1,7 +1,7 @@
 {
   "name": "kitty-tabs",
   "version": "1.0.0",
-  "description": "fuzzy tab picker for kitty",
+  "description": "a blazingly fast fuzzy tab picker for kitty",
   "dependencies": [
     "cjson"
   ]
