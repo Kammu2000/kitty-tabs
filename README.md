@@ -60,3 +60,5 @@ cp ./kitty_tabs ~/.local/bin
 ```bash
 map option+space launch --type=overlay ~/.local/bin/kitty_tabs
 ```
+
+Note: Please write your own CMakeUserPresets.json and set value of VCPKG_ROOT as per installation path on your machine 
