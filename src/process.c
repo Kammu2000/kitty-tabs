@@ -14,9 +14,101 @@ void run_command(char *const *argv) {
 
     perror("error running command");
     exit(EXIT_FAILURE);
-  } else {
-    waitpid(pid, NULL, 0);
   }
+
+  waitpid(pid, NULL, 0);
+}
+
+char *capture_command_output(char *const argv[]) {
+  int pipefd[2];
+
+  if (pipe(pipefd) == -1) {
+    perror("pipe");
+    return NULL;
+  }
+
+  pid_t pid = fork();
+
+  if (pid == -1) {
+    perror("fork");
+    close(pipefd[0]);
+    close(pipefd[1]);
+    return NULL;
+  }
+
+  if (pid == 0) {
+    if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
+      perror("dup2");
+      exit(EXIT_FAILURE);
+    }
+
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    execvp(argv[0], argv);
+
+    // Only reached if execvp fails
+    fprintf(stderr, "Failed to execute '%s': %s\n", argv[0], strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  close(pipefd[1]);
+  size_t capacity = 4096;
+  size_t length = 0;
+
+  char *result = malloc(capacity);
+
+  if (!result) {
+    perror("malloc");
+    close(pipefd[0]);
+    waitpid(pid, NULL, 0);
+    return NULL;
+  }
+
+  while (1) {
+    // Grow buffer if necessary
+    if (length == capacity) {
+      capacity *= 2;
+
+      char *tmp = realloc(result, capacity);
+
+      if (!tmp) {
+        free(result);
+        close(pipefd[0]);
+        waitpid(pid, NULL, 0);
+        return NULL;
+      }
+
+      result = tmp;
+    }
+
+    ssize_t bytes = read(pipefd[0], result + length, capacity - length);
+
+    if (bytes == -1) {
+      perror("read");
+      free(result);
+      close(pipefd[0]);
+      waitpid(pid, NULL, 0);
+      return NULL;
+    }
+
+    if (bytes == 0)
+      break; // EOF
+
+    length += bytes;
+  }
+
+  close(pipefd[0]);
+  waitpid(pid, NULL, 0);
+
+  // Make room for '\0'
+  char *tmp = realloc(result, length + 1);
+  if (tmp)
+    result = tmp;
+
+  result[length] = '\0';
+
+  return result;
 }
 
 char *run_command_with_input(char *const argv[], const char *input) {
@@ -36,8 +128,6 @@ char *run_command_with_input(char *const argv[], const char *input) {
   }
 
   if (pid == 0) {
-    // CHILD → fzf (or any command)
-
     dup2(in_pipe[0], STDIN_FILENO);
     dup2(out_pipe[1], STDOUT_FILENO);
 
@@ -87,109 +177,4 @@ char *run_command_with_input(char *const argv[], const char *input) {
 
   buffer[len] = '\0';
   return buffer;
-}
-
-char *capture_command_output(char *const argv[]) {
-  int pipefd[2];
-
-  if (pipe(pipefd) == -1) {
-    perror("pipe");
-    return NULL;
-  }
-
-  pid_t pid = fork();
-
-  if (pid == -1) {
-    perror("fork");
-    close(pipefd[0]);
-    close(pipefd[1]);
-    return NULL;
-  }
-
-  // ----------------------
-  // Child
-  // ----------------------
-  if (pid == 0) {
-
-    // stdout -> pipe
-    if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
-      perror("dup2");
-      exit(EXIT_FAILURE);
-    }
-
-    // We don't need these anymore
-    close(pipefd[0]);
-    close(pipefd[1]);
-
-    execvp(argv[0], argv);
-
-    // Only reached if execvp fails
-    fprintf(stderr, "Failed to execute '%s': %s\n", argv[0], strerror(errno));
-    exit(EXIT_FAILURE);
-  }
-
-  // ----------------------
-  // Parent
-  // ----------------------
-
-  close(pipefd[1]); // parent only reads
-
-  size_t capacity = 4096;
-  size_t length = 0;
-
-  char *result = malloc(capacity);
-
-  if (!result) {
-    perror("malloc");
-    close(pipefd[0]);
-    waitpid(pid, NULL, 0);
-    return NULL;
-  }
-
-  while (1) {
-
-    // Grow buffer if necessary
-    if (length == capacity) {
-      capacity *= 2;
-
-      char *tmp = realloc(result, capacity);
-
-      if (!tmp) {
-        free(result);
-        close(pipefd[0]);
-        waitpid(pid, NULL, 0);
-        return NULL;
-      }
-
-      result = tmp;
-    }
-
-    ssize_t bytes = read(pipefd[0], result + length, capacity - length);
-
-    if (bytes == -1) {
-      perror("read");
-      free(result);
-      close(pipefd[0]);
-      waitpid(pid, NULL, 0);
-      return NULL;
-    }
-
-    if (bytes == 0)
-      break; // EOF
-
-    length += bytes;
-  }
-
-  close(pipefd[0]);
-
-  waitpid(pid, NULL, 0);
-
-  // Make room for '\0'
-  char *tmp = realloc(result, length + 1);
-  if (tmp)
-    result = tmp;
-
-  result[length] = '\0';
-
-  return result;
 }

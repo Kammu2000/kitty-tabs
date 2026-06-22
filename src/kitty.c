@@ -26,7 +26,6 @@ static char *build_fzf_input(Tab *tabs, int count) {
 
 char *kitty_list_tabs(void) {
   char *const argv[] = {"kitty", "@", "ls", NULL};
-
   return capture_command_output(argv);
 }
 
