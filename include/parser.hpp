@@ -5,4 +5,6 @@
 
 #include "types.hpp"
 
-std::vector<Tab> parse_tabs(const std::string &window_list_json);
+namespace kitty_tabs {
+    std::vector<Tab> parse_tabs(const std::string& window_list_json);
+}

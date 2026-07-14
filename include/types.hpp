@@ -2,7 +2,8 @@
 
 #include <string>
 
-struct Tab {
-  int id;
-  std::string title;
+struct Tab
+{
+    int id;
+    std::string title;
 };
