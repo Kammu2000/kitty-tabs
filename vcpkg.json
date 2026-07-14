@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "a blazingly fast fuzzy tab picker for kitty",
   "dependencies": [
-    "cjson"
+    "nlohmann-json"
   ]
 }
