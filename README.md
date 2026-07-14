@@ -16,22 +16,14 @@ Most implementations (Node/Python scripts) add unnecessary overhead:
 - extra abstraction layers
 
 This project removes all of that and directly uses:
-- C for execution speed
+- C++ for execution speed
 - POSIX APIs for process control
-- `fzf` for fuzzy selection
+- `fzf` for fuzzy selection (make sure that you install it using brew package manager for it to work)
 
 Result: near-instant tab switching experience
 
 ---
 
-## Features
-
-- Fast native C implementation
-- Fuzzy tab search using `fzf`
-- Kitty overlay support
-- Lightweight execution path
-
----
 
 ## Setup
 
@@ -51,7 +43,7 @@ cmake --build build
 
 ### 3. Keep at ~/.local/bin (macOS)
 ```bash
-cp ./kitty_tabs ~/.local/bin
+cp ./build/kitty_tabs ~/.local/bin
 ```
 
 ---
