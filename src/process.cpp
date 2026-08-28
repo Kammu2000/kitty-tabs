@@ -1,5 +1,6 @@
 #include <print>
 #include <unistd.h>
+#include <system_error>
 
 #include "pipe.hpp"
 #include "process.hpp"
