@@ -35,7 +35,8 @@ namespace kitty_tabs {
         }
 
         std::vector<std::string> args = {
-            "/opt/homebrew/bin/fzf", "--height=50%", "--reverse", "--border", "--prompt=Tabs> ",
+            "/opt/homebrew/bin/fzf", "--height=80%", "--margin=15%,20%", "--reverse", "--border",
+            "--prompt=Tabs> ",
         };
 
         std::string output = run_command_capture_output(args, std::move(input));

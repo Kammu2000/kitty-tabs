@@ -1,7 +1,7 @@
 # kitty-tabs
 
-A fast fuzzy tab switcher for Kitty terminal built in pure C using `fzf`.
-
+A fast fuzzy tab switcher for Kitty terminal written in C++ using `fzf`.
+It feels like alfred / raycast for terminal.
 It lets you quickly search and switch between Kitty tabs using a lightweight native binary instead of slow scripting layers.
 
 ---
